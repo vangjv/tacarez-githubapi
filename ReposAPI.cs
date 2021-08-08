@@ -22,6 +22,39 @@ namespace TacarEZGithubAPI
             _gitHubClient = gitHubClient;
         }
 
+        [FunctionName("GetRepo")]
+        public async Task<IActionResult> GetRepo(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "repo/{repoName}/{branch}")] HttpRequest req, string repoName,
+            string branch, ILogger log)
+        {
+            if (repoName == null)
+            {
+                return new BadRequestObjectResult("Invalid repository name");
+            }
+
+            if (branch == null)
+            {
+                return new BadRequestObjectResult("Invalid branch name");
+            }
+            string gitHubAccount = Utility.GetEnvironmentVariable("GitHubAccount");
+            Branch ghBranch = await _gitHubClient.Repository.Branch.Get(gitHubAccount, repoName, branch);
+            GitReference gitRef = ghBranch.Commit;
+            string gitRefSha = gitRef.Sha;
+            string gitRefURL = gitRef.Url;
+            Console.WriteLine("GitRef Sha: " + gitRefSha);
+            Console.WriteLine("GitRef URL: " + gitRefURL);
+            var commits = await _gitHubClient.Repository.Commit.GetAll(gitHubAccount, repoName);
+            for (int i = 0; i < commits.Count; i++)
+            {
+                Console.WriteLine("Commit " + i + " Label: " + commits[i].Label);
+                Console.WriteLine("Commit " + i + " HtmlURL: " + commits[i].HtmlUrl);
+                Console.WriteLine("Commit " + i + " CommentsUrl: " + commits[i].CommentsUrl);
+                Console.WriteLine("Commit " + i + " Author.Login: " + commits[i].Author.Login);
+                Console.WriteLine("Commit " + i + " Sha: " + commits[i].Sha);
+            }
+            return new OkObjectResult("test");
+        }
+
         [FunctionName("CreateRepo")]
         public async Task<IActionResult> CreateRepoWithContent(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "repo")] HttpRequest req,
@@ -49,11 +82,11 @@ namespace TacarEZGithubAPI
             }
             string gitHubAccount = Utility.GetEnvironmentVariable("GitHubAccount");
             RepositoryContentChangeSet repoChangeSet = await _gitHubClient.Repository.Content.CreateFile(gitHubAccount, createdRepo.Name, "data.geojson", new CreateFileRequest(newRepo.message, newRepo.content, "main", false));
-            return new OkObjectResult(createdRepo);
+            return new OkObjectResult(repoChangeSet);
         }
 
         [FunctionName("UpdateRepo")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> UpdateRepo(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "repo/{repoName}/{branch}")] HttpRequest req, string repoName,
             string branch, ILogger log)
         {
