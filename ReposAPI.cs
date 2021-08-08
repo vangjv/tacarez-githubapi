@@ -49,7 +49,7 @@ namespace TacarEZGithubAPI
             }
             string gitHubAccount = Utility.GetEnvironmentVariable("GitHubAccount");
             RepositoryContentChangeSet repoChangeSet = await _gitHubClient.Repository.Content.CreateFile(gitHubAccount, createdRepo.Name, "data.geojson", new CreateFileRequest(newRepo.message, newRepo.content, "main", false));
-            return new OkObjectResult(repoChangeSet);
+            return new OkObjectResult(createdRepo);
         }
 
         [FunctionName("UpdateRepo")]
