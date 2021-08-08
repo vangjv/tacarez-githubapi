@@ -15,7 +15,7 @@ namespace TacarEZGithubAPI
 {
     public static class CreateRepo
     {
-        [FunctionName("CreateRepo")]
+        [FunctionName("CreateRepository")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             ILogger log)
@@ -39,7 +39,17 @@ namespace TacarEZGithubAPI
                 GithubContent newContent = new GithubContent
                 {
                     content = newRepo.content,
-                    message = newRepo.message
+                    message = newRepo.message,
+                    committer = new Committer
+                    {
+                        name = "DSHackathon",
+                        email = "hackathon@meliority.solutions",
+                        author = new Author
+                        {
+                            name = "Jonathan Vang",
+                            email = "jonathan.vang@gmail.com"
+                        }
+                    }
                 };
                 newContentRequest.AddJsonBody(newContent);
                 newContentRequest.AddHeader("Content-Type", "application/json");
